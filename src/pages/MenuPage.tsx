@@ -3,31 +3,13 @@
    Grouped by category with add/edit/toggle/delete
    ============================================ */
 
-import { useEffect, useState, useCallback } from 'react'
-import { useParams } from 'react-router-dom'
-import axios from 'axios'
+import { useState } from 'react'
 import MerchantLayout from '../components/MerchantLayout'
 import { IconOrders, IconMenu, IconEdit, IconClose, IconAlertCircle, IconTables } from '../components/Icons'
+import { MOCK_CATEGORIES, MOCK_MENU_ITEMS } from '../services/mockData'
+import type { MockCategory as Category, MockMenuItem as MenuItem } from '../services/mockData'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
-
-type Category = {
-    id: string
-    name: string
-    sort_order: number
-    item_count: number
-}
-
-type MenuItem = {
-    id: string
-    name: string
-    description: string | null
-    price: string
-    category_id: string | null
-    category_name: string | null
-    is_in_stock: boolean
-    image_url: string | null
-}
 
 type MenuForm = {
     name: string
@@ -45,8 +27,6 @@ type CategoryForm = {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const API_BASE = 'http://localhost:4000/api'
-
 const emptyItemForm: MenuForm = {
     name: '', description: '', price: '', category_id: '', is_in_stock: true, image_url: '',
 }
@@ -54,13 +34,8 @@ const emptyItemForm: MenuForm = {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function MenuPage() {
-    const { tenantId } = useParams() as { tenantId: string }
-    const token = localStorage.getItem('token')
-
-    const [categories, setCategories] = useState<Category[]>([])
-    const [items, setItems] = useState<MenuItem[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+    const [categories, setCategories] = useState<Category[]>(MOCK_CATEGORIES)
+    const [items, setItems] = useState<MenuItem[]>(MOCK_MENU_ITEMS)
     const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
     // Modals
@@ -72,32 +47,6 @@ export default function MenuPage() {
     const [categoryForm, setCategoryForm] = useState<CategoryForm>({ name: '', sort_order: 0 })
     const [saving, setSaving] = useState(false)
     const [formError, setFormError] = useState<string | null>(null)
-
-    const headers = {
-        'x-tenant-id': tenantId,
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    }
-
-    // ── Fetch data ──────────────────────────────────────────────────────────
-
-    const fetchData = useCallback(async () => {
-        setLoading(true)
-        setError(null)
-        try {
-            const [catRes, itemRes] = await Promise.all([
-                axios.get(`${API_BASE}/menu/categories`, { headers }),
-                axios.get(`${API_BASE}/menu/items`, { headers }),
-            ])
-            setCategories(catRes.data.categories || [])
-            setItems(itemRes.data.items || [])
-        } catch (err: any) {
-            setError(err?.message || 'Failed to load menu')
-        } finally {
-            setLoading(false)
-        }
-    }, [tenantId, token])
-
-    useEffect(() => { fetchData() }, [fetchData])
 
     // ── Filter items by active category ─────────────────────────────────────
 
@@ -133,35 +82,41 @@ export default function MenuPage() {
         if (!itemForm.price || parseFloat(itemForm.price) < 0) { setFormError('Valid price is required'); return }
         setSaving(true)
         setFormError(null)
-        try {
-            const payload = { ...itemForm, price: parseFloat(itemForm.price) }
+        // Simulate save locally
+        setTimeout(() => {
             if (editingItem) {
-                await axios.put(`${API_BASE}/menu/items/${editingItem.id}`, payload, { headers })
+                setItems(prev => prev.map(i =>
+                    i.id === editingItem.id
+                        ? { ...i, name: itemForm.name, description: itemForm.description, price: itemForm.price, category_id: itemForm.category_id, is_in_stock: itemForm.is_in_stock, image_url: itemForm.image_url }
+                        : i
+                ))
             } else {
-                await axios.post(`${API_BASE}/menu/items`, payload, { headers })
+                const newItem: MenuItem = {
+                    id: 'mi-' + String(Date.now()).slice(-6),
+                    name: itemForm.name,
+                    description: itemForm.description || null,
+                    price: itemForm.price,
+                    category_id: itemForm.category_id || null,
+                    category_name: categories.find(c => c.id === itemForm.category_id)?.name || null,
+                    is_in_stock: itemForm.is_in_stock,
+                    image_url: itemForm.image_url || null,
+                }
+                setItems(prev => [...prev, newItem])
             }
             setShowItemModal(false)
-            fetchData()
-        } catch (err: any) {
-            setFormError(err?.response?.data?.error || 'Failed to save item')
-        } finally {
             setSaving(false)
-        }
+        }, 300)
     }
 
-    const handleToggleStock = async (item: MenuItem) => {
-        try {
-            await axios.patch(`${API_BASE}/menu/items/${item.id}/toggle-stock`, {}, { headers })
-            fetchData()
-        } catch { /* ignore */ }
+    const handleToggleStock = (item: MenuItem) => {
+        setItems(prev => prev.map(i =>
+            i.id === item.id ? { ...i, is_in_stock: !i.is_in_stock } : i
+        ))
     }
 
-    const handleDeleteItem = async (item: MenuItem) => {
+    const handleDeleteItem = (item: MenuItem) => {
         if (!window.confirm(`Delete "${item.name}"? This cannot be undone.`)) return
-        try {
-            await axios.delete(`${API_BASE}/menu/items/${item.id}`, { headers })
-            fetchData()
-        } catch { /* ignore */ }
+        setItems(prev => prev.filter(i => i.id !== item.id))
     }
 
     // ── Category form handlers ──────────────────────────────────────────────
@@ -184,53 +139,37 @@ export default function MenuPage() {
         if (!categoryForm.name.trim()) { setFormError('Category name is required'); return }
         setSaving(true)
         setFormError(null)
-        try {
+        // Simulate save locally
+        setTimeout(() => {
             if (editingCategory) {
-                await axios.put(`${API_BASE}/menu/categories/${editingCategory.id}`, categoryForm, { headers })
+                setCategories(prev => prev.map(c =>
+                    c.id === editingCategory.id
+                        ? { ...c, name: categoryForm.name, sort_order: categoryForm.sort_order }
+                        : c
+                ))
             } else {
-                await axios.post(`${API_BASE}/menu/categories`, categoryForm, { headers })
+                const newCat: Category = {
+                    id: 'cat-' + String(Date.now()).slice(-6),
+                    name: categoryForm.name,
+                    sort_order: categoryForm.sort_order,
+                    item_count: 0,
+                }
+                setCategories(prev => [...prev, newCat])
             }
             setShowCategoryModal(false)
-            fetchData()
-        } catch (err: any) {
-            setFormError(err?.response?.data?.error || 'Failed to save category')
-        } finally {
             setSaving(false)
-        }
+        }, 300)
     }
 
-    const handleDeleteCategory = async (cat: Category) => {
+    const handleDeleteCategory = (cat: Category) => {
         if (!window.confirm(`Delete category "${cat.name}"? Items will be uncategorized.`)) return
-        try {
-            await axios.delete(`${API_BASE}/menu/categories/${cat.id}`, { headers })
-            if (activeCategory === cat.id) setActiveCategory(null)
-            fetchData()
-        } catch { /* ignore */ }
+        setCategories(prev => prev.filter(c => c.id !== cat.id))
+        // Un-categorize items that belonged to this category
+        setItems(prev => prev.map(i =>
+            i.category_id === cat.id ? { ...i, category_id: null, category_name: null } : i
+        ))
+        if (activeCategory === cat.id) setActiveCategory(null)
     }
-
-    // ── Loading ─────────────────────────────────────────────────────────────
-
-    if (loading) return (
-        <div className="min-h-screen bg-dark-bg flex items-center justify-center">
-            <div className="text-center">
-                <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-text-secondary text-sm">Loading menu...</p>
-            </div>
-        </div>
-    )
-
-    if (error) return (
-        <div className="min-h-screen bg-dark-bg flex items-center justify-center">
-            <div className="text-center max-w-sm">
-                <IconAlertCircle className="w-12 h-12 mx-auto mb-4 text-danger" />
-                <h2 className="text-lg font-bold text-text-primary mb-2">Could not load menu</h2>
-                <p className="text-text-tertiary text-sm mb-4">{error}</p>
-                <button onClick={fetchData}
-                    className="px-6 py-2.5 bg-primary-500 text-white rounded-xl text-sm font-medium
-                               hover:bg-primary-500/90 transition-colors">Retry</button>
-            </div>
-        </div>
-    )
 
     // ── RENDER ──────────────────────────────────────────────────────────────
 

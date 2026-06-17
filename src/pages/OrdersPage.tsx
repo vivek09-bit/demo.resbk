@@ -1,44 +1,16 @@
 /* ============================================
    OrdersPage — Merchant order management
-   Live orders with status updates, real-time via WebSocket
+   Uses demo/mock data (no backend required)
    ============================================ */
 
-import { useEffect, useState, useCallback } from 'react'
-import { useParams } from 'react-router-dom'
-import axios from 'axios'
-import { io as socketIO } from 'socket.io-client'
+import { useState } from 'react'
+
 import MerchantLayout from '../components/MerchantLayout'
-import { IconAlertCircle, IconOrders, IconTables, IconClose } from '../components/Icons'
-
-// ─── Types ──────────────────────────────────────────────────────────────────
-
-type Order = {
-    id: string
-    table_id: string | null
-    table_number_name: string | null
-    status: string
-    order_type: string
-    payment_status: string
-    total_amount: string
-    item_count: number
-    created_at: string
-}
-
-type OrderDetail = {
-    order: Order
-    items: Array<{
-        id: string
-        menu_item_id: string
-        item_name: string | null
-        quantity: number
-        price_at_sale: string
-    }>
-}
+import { IconOrders, IconTables, IconClose } from '../components/Icons'
+import { MOCK_ORDERS, getMockOrderDetail } from '../services/mockData'
+import type { MockOrder, MockOrderDetail as OrderDetail } from '../services/mockData'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
-
-const API_BASE = 'http://localhost:4000/api'
-const WS_BASE = 'http://localhost:4000'
 
 const STATUS_FLOW: Record<string, string[]> = {
     RECEIVED: ['PREPARING', 'CANCELLED'],
@@ -66,59 +38,13 @@ function fmtDateTime(iso: string) {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-export default function OrdersPage() {
-    const { tenantId } = useParams() as { tenantId: string }
-    const token = localStorage.getItem('token')
+type Order = MockOrder
 
-    const [orders, setOrders] = useState<Order[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+export default function OrdersPage() {
+    const [orders, setOrders] = useState<Order[]>(MOCK_ORDERS)
     const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active')
     const [selectedOrder, setSelectedOrder] = useState<OrderDetail | null>(null)
     const [showDetail, setShowDetail] = useState(false)
-
-    const headers = {
-        'x-tenant-id': tenantId,
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    }
-
-    // ── Fetch orders ────────────────────────────────────────────────────────
-
-    const fetchOrders = useCallback(async () => {
-        try {
-            const res = await axios.get(`${API_BASE}/orders?tenant_id=${tenantId}&limit=100`, { headers })
-            setOrders(res.data.orders || [])
-            setError(null)
-        } catch (err: any) {
-            setError(err?.message || 'Failed to load orders')
-        } finally {
-            setLoading(false)
-        }
-    }, [tenantId, token])
-
-    useEffect(() => { fetchOrders() }, [fetchOrders])
-
-    // ── Real-time updates ───────────────────────────────────────────────────
-
-    useEffect(() => {
-        const socket = socketIO(WS_BASE, {
-            query: { tenant: tenantId },
-            transports: ['websocket', 'polling'],
-        })
-        socket.emit('subscribe:tenant', tenantId)
-
-        socket.on('order:created', () => {
-            fetchOrders()
-        })
-        socket.on('order:status-changed', () => {
-            fetchOrders()
-        })
-        socket.on('order:payment-updated', () => {
-            fetchOrders()
-        })
-
-        return () => { socket.close() }
-    }, [tenantId, fetchOrders])
 
     // ── Filter ──────────────────────────────────────────────────────────────
 
@@ -128,54 +54,30 @@ export default function OrdersPage() {
 
     // ── Status actions ──────────────────────────────────────────────────────
 
-    const handleStatusUpdate = async (orderId: string, status: string) => {
-        try {
-            await axios.patch(`${API_BASE}/orders/${orderId}/status`, { status }, { headers })
-            if (showDetail && selectedOrder) {
-                setSelectedOrder({ ...selectedOrder, order: { ...selectedOrder.order, status } })
-            }
-        } catch { /* ignore */ }
+    const handleStatusUpdate = (orderId: string, status: string) => {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o))
+        if (showDetail && selectedOrder) {
+            setSelectedOrder({ ...selectedOrder, order: { ...selectedOrder.order, status } })
+        }
     }
 
-    const handleMarkPaid = async (orderId: string) => {
-        try {
-            await axios.patch(`${API_BASE}/orders/${orderId}/payment`, {}, { headers })
-            if (showDetail && selectedOrder) {
-                setSelectedOrder({
-                    ...selectedOrder,
-                    order: { ...selectedOrder.order, payment_status: 'PAID' },
-                })
-            }
-        } catch { /* ignore */ }
+    const handleMarkPaid = (orderId: string) => {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, payment_status: 'PAID' } : o))
+        if (showDetail && selectedOrder) {
+            setSelectedOrder({
+                ...selectedOrder,
+                order: { ...selectedOrder.order, payment_status: 'PAID' },
+            })
+        }
     }
 
-    const openDetail = async (orderId: string) => {
-        try {
-            const res = await axios.get(`${API_BASE}/orders/${orderId}`, { headers })
-            setSelectedOrder(res.data)
+    const openDetail = (orderId: string) => {
+        const detail = getMockOrderDetail(orderId)
+        if (detail) {
+            setSelectedOrder(detail)
             setShowDetail(true)
-        } catch { /* ignore */ }
+        }
     }
-
-    // ── Loading / Error ─────────────────────────────────────────────────────
-
-    if (loading) return (
-        <div className="min-h-screen bg-dark-bg flex items-center justify-center">
-            <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full" />
-        </div>
-    )
-
-    if (error) return (
-        <div className="min-h-screen bg-dark-bg flex items-center justify-center">
-            <div className="text-center">
-                <IconAlertCircle className="w-12 h-12 mx-auto mb-3 text-danger" />
-                <p className="text-text-primary font-medium mb-1">Could not load orders</p>
-                <p className="text-text-tertiary text-sm mb-4">{error}</p>
-                <button onClick={fetchOrders}
-                    className="px-5 py-2 bg-primary-500 text-white rounded-xl text-sm hover:bg-primary-500/90">Retry</button>
-            </div>
-        </div>
-    )
 
     return (
         <MerchantLayout title="Orders" subtitle={`${activeOrders.length} active`}>

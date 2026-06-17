@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import axios from 'axios'
 import { IconTables, IconCart, IconClose } from '../components/Icons'
+import { MOCK_MENU_ITEMS, MOCK_CATEGORIES } from '../services/mockData'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -18,8 +18,6 @@ type MenuItem = {
 
 type CartItem = { item: MenuItem; qty: number }
 
-const API_BASE = 'http://localhost:4000/api'
-
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 const fmtPrice = (p: string) =>
@@ -30,40 +28,14 @@ const fmtPrice = (p: string) =>
 export default function OrderPage() {
     const { tenantId, tableId } = useParams() as { tenantId: string; tableId: string }
     const navigate = useNavigate()
-    const [menu, setMenu] = useState<MenuItem[]>([])
-    const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
+    const [menu] = useState<MenuItem[]>(MOCK_MENU_ITEMS)
+    const [categories] = useState(MOCK_CATEGORIES.map(c => ({ id: c.id, name: c.name })))
     const [cart, setCart] = useState<CartItem[]>([])
     const [activeCategory, setActiveCategory] = useState<string | null>(null)
-    const [loading, setLoading] = useState(true)
+    const [loading] = useState(false)
     const [placing, setPlacing] = useState(false)
     const [showCart, setShowCart] = useState(false)
     const [error, setError] = useState<string | null>(null)
-
-    const headers = { 'x-tenant-id': tenantId }
-
-    // ── Load data ───────────────────────────────────────────────────────────
-
-    useEffect(() => {
-        async function load() {
-            try {
-                const [menuRes, catRes] = await Promise.all([
-                    axios.get(`${API_BASE}/menu/items`, { headers }),
-                    axios.get(`${API_BASE}/menu/categories`, { headers }),
-                ])
-                const items = (menuRes.data.items || [])
-                setMenu(items)
-                setCategories(catRes.data.categories || [])
-            } catch {
-                setMenu([
-                    { id: '1', name: 'Margherita Pizza', description: 'Classic cheese & tomato', price: '12.50', category_id: null, category_name: null, is_in_stock: true, image_url: null },
-                    { id: '2', name: 'Crispy Fries', description: 'Salted golden fries', price: '4.50', category_id: null, category_name: null, is_in_stock: true, image_url: null },
-                ])
-            } finally {
-                setLoading(false)
-            }
-        }
-        load()
-    }, [tenantId])
 
     // ── Cart logic ──────────────────────────────────────────────────────────
 
@@ -91,26 +63,12 @@ export default function OrderPage() {
         if (cart.length === 0) return
         setPlacing(true)
         setError(null)
-        try {
-            const items = cart.map(c => ({
-                menu_item_id: c.item.id,
-                quantity: c.qty,
-                price: parseFloat(c.item.price),
-            }))
-            const payload = {
-                table_id: tableId || null,
-                order_type: tableId ? 'DINE_IN' : 'TAKEAWAY',
-                items,
-                payment_method: 'COUNTER_CASH_CARD',
-            }
-            const res = await axios.post(`${API_BASE}/orders`, payload, { headers })
-            // Redirect to tracking page
-            navigate(`/order/${tenantId}/${tableId}/tracking?order=${res.data.order_id}`)
-        } catch (err: any) {
-            setError(err?.response?.data?.error || 'Failed to place order')
-        } finally {
+        // Simulate order placement with mock data
+        const mockOrderId = 'ord-' + String(Date.now()).slice(-6)
+        setTimeout(() => {
             setPlacing(false)
-        }
+            navigate(`/order/${tenantId}/${tableId}/tracking?order=${mockOrderId}`)
+        }, 800)
     }
 
     const subtotal = cart.reduce((s, c) => s + parseFloat(c.item.price) * c.qty, 0)

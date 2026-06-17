@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { IconMapPin } from './Icons'
 import Button from './Button'
 import { NAV_LINKS } from '../utils/constants'
 
@@ -213,18 +214,29 @@ export default function Navigation() {
                     to="/"
                     className="text-lg md:text-xl font-bold text-text-primary hover:text-primary-500 transition-colors flex items-center gap-2"
                 >
-                    <span>RestaurantHub</span>
+                    <span>DinenDash</span>
                 </Link>
 
                 {/* Desktop Menu */}
                 <div className="hidden md:flex items-center gap-8">
-                    {isLandingPage && !isLoggedIn && (
-                        <ul className="flex items-center gap-8 text-sm">
-                            {NAV_LINKS.map((link) => (
-                                <NavLinkItem key={link.href} {...link} />
-                            ))}
-                        </ul>
-                    )}
+                    <ul className="flex items-center gap-6 text-sm">
+                        <li>
+                            <Link
+                                to="/nearby"
+                                className="text-text-secondary hover:text-primary-500 transition-colors font-medium flex items-center gap-1.5"
+                            >
+                                <IconMapPin className="w-3.5 h-3.5" />
+                                Nearby
+                            </Link>
+                        </li>
+                        {isLandingPage && !isLoggedIn && (
+                            <>
+                                {NAV_LINKS.map((link) => (
+                                    <NavLinkItem key={link.href} {...link} />
+                                ))}
+                            </>
+                        )}
+                    </ul>
                     <AuthButtons />
                 </div>
 
@@ -281,6 +293,23 @@ export default function Navigation() {
                             <p className="text-text-primary font-semibold text-base">{user.name}</p>
                         </div>
                     )}
+
+                    {/* Explore */}
+                    <nav>
+                        <p className="text-xs text-text-secondary uppercase tracking-wider mb-3 font-semibold">Explore</p>
+                        <ul className="flex flex-col gap-1">
+                            <li>
+                                <Link
+                                    to="/nearby"
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="flex items-center gap-2 py-2.5 text-sm text-text-secondary hover:text-primary-500 transition-colors rounded-lg"
+                                >
+                                    <IconMapPin className="w-4 h-4" />
+                                    Restaurants Near Me
+                                </Link>
+                            </li>
+                        </ul>
+                    </nav>
 
                     {/* Section Links */}
                     {isLandingPage && !isLoggedIn && (

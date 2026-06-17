@@ -1,35 +1,20 @@
 /* ============================================
    OrderTrackingPage — Real-time order status for customers
-   Shows live status updates via WebSocket
+   Uses demo/mock data (no backend required)
    ============================================ */
 
 import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import axios from 'axios'
-import { io as socketIO } from 'socket.io-client'
 import { IconOrders, IconChef, IconTables, IconCheckCircle, IconAlertCircle } from '../components/Icons'
+import { getMockOrderDetail } from '../services/mockData'
+import type { MockOrderItem, MockOrder } from '../services/mockData'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-type OrderData = {
-    id: string
-    status: string
-    total_amount: string
-    created_at: string
-    table_number_name: string | null
-}
-
-type OrderItem = {
-    id: string
-    item_name: string | null
-    quantity: number
-    price_at_sale: string
-}
+type OrderData = MockOrder
+type OrderItem = MockOrderItem
 
 // ─── Constants ──────────────────────────────────────────────────────────────
-
-const API_BASE = 'http://localhost:4000/api'
-const WS_BASE = 'http://localhost:4000'
 
 const STATUS_STEPS = ['RECEIVED', 'PREPARING', 'SERVED', 'COMPLETED']
 
@@ -51,7 +36,7 @@ function fmtTime(iso: string) {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function OrderTrackingPage() {
-    const { tenantId, tableId } = useParams() as { tenantId: string; tableId: string }
+    const { tableId } = useParams() as { tenantId: string; tableId: string }
     const [searchParams] = useSearchParams()
     const orderId = searchParams.get('order')
 
@@ -60,36 +45,43 @@ export default function OrderTrackingPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    const headers = { 'x-tenant-id': tenantId }
-
-    // ── Fetch order ─────────────────────────────────────────────────────────
+    // ── Load mock order ─────────────────────────────────────────────────────
 
     useEffect(() => {
         if (!orderId) { setLoading(false); setError('No order ID'); return }
-        axios.get(`${API_BASE}/orders/${orderId}`, { headers })
-            .then(res => { setOrder(res.data.order); setItems(res.data.items || []) })
-            .catch(err => setError(err?.message || 'Failed to load order'))
-            .finally(() => setLoading(false))
+        const detail = getMockOrderDetail(orderId)
+        if (detail) {
+            setOrder(detail.order)
+            setItems(detail.items)
+        } else {
+            // If it's a new demo order (placed from OrderPage), simulate it
+            setOrder({
+                id: orderId,
+                status: 'RECEIVED',
+                table_id: null,
+                table_number_name: tableId ? `Table ${tableId.slice(0, 4).toUpperCase()}` : null,
+                order_type: 'DINE_IN',
+                payment_status: 'PENDING',
+                total_amount: '0.00',
+                item_count: 0,
+                created_at: new Date().toISOString(),
+            })
+        }
+        setLoading(false)
     }, [orderId])
 
-    // ── Real-time updates ───────────────────────────────────────────────────
+    // ── Simulate status progression ─────────────────────────────────────────
 
     useEffect(() => {
-        if (!orderId) return
-        const socket = socketIO(WS_BASE, {
-            query: { tenant: tenantId },
-            transports: ['websocket', 'polling'],
-        })
-        socket.emit('subscribe:tenant', tenantId)
-
-        socket.on('order:status-changed', (data: any) => {
-            if (data.id === orderId) {
-                setOrder(prev => prev ? { ...prev, status: data.status } : prev)
-            }
-        })
-
-        return () => { socket.close() }
-    }, [tenantId, orderId])
+        if (!order || order.status === 'COMPLETED') return
+        const steps = ['PREPARING', 'SERVED', 'COMPLETED']
+        const idx = steps.indexOf(order.status === 'RECEIVED' ? 'PREPARING' : order.status === 'PREPARING' ? 'SERVED' : order.status === 'SERVED' ? 'COMPLETED' : '')
+        if (idx === -1) return
+        const timer = setTimeout(() => {
+            setOrder(prev => prev ? { ...prev, status: steps[idx] } : prev)
+        }, 5000 * (idx + 1)) // 5s → 10s → 15s
+        return () => clearTimeout(timer)
+    }, [order])
 
     // ── Loading ─────────────────────────────────────────────────────────────
 
@@ -161,7 +153,6 @@ export default function OrderTrackingPage() {
                             const cfg = STATUS_CONFIG[step]
                             const isCompleted = i <= currentIdx
                             const isCurrent = i === currentIdx
-                            const isPending = i > currentIdx
                             return (
                                 <div key={step} className="flex items-start gap-4 pb-6 last:pb-0 relative">
                                     {/* Connector line */}

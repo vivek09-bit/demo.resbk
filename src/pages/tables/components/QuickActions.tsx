@@ -48,7 +48,7 @@ export default function QuickActions({ status, ...props }: QuickActionsProps) {
         onPrintBill,
     } = props
 
-    if (status === 'occupied') {
+    if (status === 'OCCUPIED') {
         return (
             <div className="flex flex-wrap gap-2">
                 {onViewOrder && (
@@ -73,7 +73,7 @@ export default function QuickActions({ status, ...props }: QuickActionsProps) {
                     </button>
                 )}
                 {onChangeStatus && (
-                    <button className={btnBase} onClick={() => onChangeStatus(tableId, 'maintenance')}>
+                    <button className={btnBase} onClick={() => onChangeStatus(tableId, 'MAINTENANCE')}>
                         Maintenance
                     </button>
                 )}
@@ -81,12 +81,12 @@ export default function QuickActions({ status, ...props }: QuickActionsProps) {
         )
     }
 
-    if (status === 'available') {
+    if (status === 'AVAILABLE') {
         return (
             <div className="flex flex-wrap gap-2">
                 {onChangeStatus && (
                     <button className={`${btnBase} hover:border-status-occupied hover:text-status-occupied`}
-                        onClick={() => onChangeStatus(tableId, 'occupied')}>
+                        onClick={() => onChangeStatus(tableId, 'OCCUPIED')}>
                         Occupy
                     </button>
                 )}
@@ -105,7 +105,7 @@ export default function QuickActions({ status, ...props }: QuickActionsProps) {
         )
     }
 
-    if (status === 'reserved') {
+    if (status === 'RESERVED') {
         return (
             <div className="flex flex-wrap gap-2">
                 {onOccupy && (
@@ -129,7 +129,7 @@ export default function QuickActions({ status, ...props }: QuickActionsProps) {
         )
     }
 
-    if (status === 'billing') {
+    if (status === 'BILLING') {
         return (
             <div className="flex flex-wrap gap-2">
                 {onViewOrder && (
@@ -149,7 +149,7 @@ export default function QuickActions({ status, ...props }: QuickActionsProps) {
                     </button>
                 )}
                 {onChangeStatus && (
-                    <button className={btnBase} onClick={() => onChangeStatus(tableId, 'available')}>
+                    <button className={btnBase} onClick={() => onChangeStatus(tableId, 'AVAILABLE')}>
                         Clear Table
                     </button>
                 )}
@@ -162,7 +162,7 @@ export default function QuickActions({ status, ...props }: QuickActionsProps) {
         <div className="flex flex-wrap gap-2">
             {onChangeStatus && (
                 <button className={`${btnBase} hover:border-success hover:text-success`}
-                    onClick={() => onChangeStatus(tableId, 'available')}>
+                    onClick={() => onChangeStatus(tableId, 'AVAILABLE')}>
                     Mark Available
                 </button>
             )}

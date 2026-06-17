@@ -55,7 +55,7 @@ export default function MerchantLayout({ title, subtitle, children, headerAction
                                    text-primary-500 font-bold text-sm hover:bg-primary-500/30 transition-colors flex-shrink-0">
                         {sidebarOpen ? 'RH' : <IconHamburger className="w-4 h-4" />}
                     </button>
-                    {sidebarOpen && <span className="font-bold text-text-primary text-sm truncate">RestaurantHub</span>}
+                    {sidebarOpen && <span className="font-bold text-text-primary text-sm truncate">DinenDash</span>}
                 </div>
 
                 {/* Nav — scrollable */}

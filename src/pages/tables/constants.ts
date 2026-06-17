@@ -54,7 +54,7 @@ export const TABLE_ENDPOINTS = {
 
 /** WebSocket base URL */
 export const WS_BASE = (import.meta as any).env?.VITE_WS_URL || 'ws://localhost:4000'
-export const WS_TABLES = (restaurantId: string) => `${WS_BASE}`
+export const WS_TABLES = (_restaurantId: string) => `${WS_BASE}`
 
 /**
  * Map backend status enums → frontend status keys.
@@ -92,6 +92,7 @@ export type TableOrder = {
 export type TableData = {
     id: string
     number: number
+    table_number_name?: string
     capacity: number
     floor: string
     section: string | null
@@ -133,16 +134,16 @@ export type TablesStats = {
 }
 
 export const MOCK_TABLES: TableData[] = [
-    { id: '1', number: 1, capacity: 2, floor: 'Ground', status: 'available', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: '', lastUpdated: '2024-01-15T14:00:00Z' },
-    { id: '2', number: 2, capacity: 4, floor: 'Ground', status: 'occupied', customers: 2, seatedSince: '2024-01-15T14:30:00Z', orders: [{ id: 'o1', items: 3, ready: 1, total: 850, status: 'preparing' }], currentBill: 2450, notes: '', lastUpdated: '2024-01-15T14:45:00Z' },
-    { id: '3', number: 3, capacity: 4, floor: 'Ground', status: 'occupied', customers: 3, seatedSince: '2024-01-15T14:20:00Z', orders: [{ id: 'o2', items: 5, ready: 3, total: 1820, status: 'served' }], currentBill: 1820, notes: 'Birthday table', lastUpdated: '2024-01-15T14:50:00Z' },
-    { id: '4', number: 4, capacity: 6, floor: 'Ground', status: 'reserved', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: 'Arriving 7:30 PM', lastUpdated: '2024-01-15T13:00:00Z' },
-    { id: '5', number: 5, capacity: 2, floor: 'Mezzanine', status: 'available', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: '', lastUpdated: '2024-01-15T14:00:00Z' },
-    { id: '6', number: 6, capacity: 2, floor: 'Mezzanine', status: 'occupied', customers: 1, seatedSince: '2024-01-15T14:40:00Z', orders: [{ id: 'o3', items: 2, ready: 0, total: 450, status: 'preparing' }], currentBill: 450, notes: '', lastUpdated: '2024-01-15T14:55:00Z' },
-    { id: '7', number: 7, capacity: 4, floor: 'Mezzanine', status: 'billing', customers: 4, seatedSince: '2024-01-15T13:15:00Z', orders: [{ id: 'o4', items: 6, ready: 6, total: 3200, status: 'completed' }], currentBill: 3200, notes: 'Needs invoice', lastUpdated: '2024-01-15T14:50:00Z' },
-    { id: '8', number: 8, capacity: 4, floor: 'Mezzanine', status: 'available', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: '', lastUpdated: '2024-01-15T14:00:00Z' },
-    { id: '9', number: 9, capacity: 8, floor: 'Patio', status: 'occupied', customers: 6, seatedSince: '2024-01-15T14:00:00Z', orders: [{ id: 'o5', items: 8, ready: 4, total: 4500, status: 'preparing' }], currentBill: 4500, notes: 'VIP — manager notified', lastUpdated: '2024-01-15T14:30:00Z' },
-    { id: '10', number: 10, capacity: 6, floor: 'Patio', status: 'maintenance', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: 'Broken leg — awaiting repair', lastUpdated: '2024-01-15T12:00:00Z' },
-    { id: '11', number: 11, capacity: 2, floor: 'Patio', status: 'available', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: '', lastUpdated: '2024-01-15T14:00:00Z' },
-    { id: '12', number: 12, capacity: 4, floor: 'Patio', status: 'reserved', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: 'Window table — preferred', lastUpdated: '2024-01-15T13:30:00Z' },
+    { id: '1', number: 1, capacity: 2, floor: 'Ground', section: null, shape: null, is_accessible: false, min_spend: null, status: 'AVAILABLE', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: '', lastUpdated: '2024-01-15T14:00:00Z' },
+    { id: '2', number: 2, capacity: 4, floor: 'Ground', section: null, shape: null, is_accessible: false, min_spend: null, status: 'OCCUPIED', customers: 2, seatedSince: '2024-01-15T14:30:00Z', orders: [{ id: 'o1', items: 3, ready: 1, total: 850, status: 'preparing' }], currentBill: 2450, notes: '', lastUpdated: '2024-01-15T14:45:00Z' },
+    { id: '3', number: 3, capacity: 4, floor: 'Ground', section: null, shape: null, is_accessible: false, min_spend: null, status: 'OCCUPIED', customers: 3, seatedSince: '2024-01-15T14:20:00Z', orders: [{ id: 'o2', items: 5, ready: 3, total: 1820, status: 'served' }], currentBill: 1820, notes: 'Birthday table', lastUpdated: '2024-01-15T14:50:00Z' },
+    { id: '4', number: 4, capacity: 6, floor: 'Ground', section: null, shape: null, is_accessible: false, min_spend: null, status: 'RESERVED', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: 'Arriving 7:30 PM', lastUpdated: '2024-01-15T13:00:00Z' },
+    { id: '5', number: 5, capacity: 2, floor: 'Mezzanine', section: null, shape: null, is_accessible: false, min_spend: null, status: 'AVAILABLE', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: '', lastUpdated: '2024-01-15T14:00:00Z' },
+    { id: '6', number: 6, capacity: 2, floor: 'Mezzanine', section: null, shape: null, is_accessible: false, min_spend: null, status: 'OCCUPIED', customers: 1, seatedSince: '2024-01-15T14:40:00Z', orders: [{ id: 'o3', items: 2, ready: 0, total: 450, status: 'preparing' }], currentBill: 450, notes: '', lastUpdated: '2024-01-15T14:55:00Z' },
+    { id: '7', number: 7, capacity: 4, floor: 'Mezzanine', section: null, shape: null, is_accessible: false, min_spend: null, status: 'BILLING', customers: 4, seatedSince: '2024-01-15T13:15:00Z', orders: [{ id: 'o4', items: 6, ready: 6, total: 3200, status: 'completed' }], currentBill: 3200, notes: 'Needs invoice', lastUpdated: '2024-01-15T14:50:00Z' },
+    { id: '8', number: 8, capacity: 4, floor: 'Mezzanine', section: null, shape: null, is_accessible: false, min_spend: null, status: 'AVAILABLE', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: '', lastUpdated: '2024-01-15T14:00:00Z' },
+    { id: '9', number: 9, capacity: 8, floor: 'Patio', section: null, shape: null, is_accessible: false, min_spend: null, status: 'OCCUPIED', customers: 6, seatedSince: '2024-01-15T14:00:00Z', orders: [{ id: 'o5', items: 8, ready: 4, total: 4500, status: 'preparing' }], currentBill: 4500, notes: 'VIP — manager notified', lastUpdated: '2024-01-15T14:30:00Z' },
+    { id: '10', number: 10, capacity: 6, floor: 'Patio', section: null, shape: null, is_accessible: false, min_spend: null, status: 'MAINTENANCE', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: 'Broken leg — awaiting repair', lastUpdated: '2024-01-15T12:00:00Z' },
+    { id: '11', number: 11, capacity: 2, floor: 'Patio', section: null, shape: null, is_accessible: false, min_spend: null, status: 'AVAILABLE', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: '', lastUpdated: '2024-01-15T14:00:00Z' },
+    { id: '12', number: 12, capacity: 4, floor: 'Patio', section: null, shape: null, is_accessible: false, min_spend: null, status: 'RESERVED', customers: null, seatedSince: null, orders: [], currentBill: 0, notes: 'Window table — preferred', lastUpdated: '2024-01-15T13:30:00Z' },
 ]

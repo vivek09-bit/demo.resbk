@@ -1,18 +1,10 @@
 /* ============================================
    useTables — Custom hook for table data management
+   Uses demo/mock data (no backend required)
    ============================================ */
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import {
-    fetchTables,
-    createTable as apiCreateTable,
-    deleteTable as apiDeleteTable,
-    updateTableStatus as apiUpdateStatus,
-    updateTableNote as apiUpdateNote,
-    callWaiter as apiCallWaiter,
-    subscribeToUpdates,
-    type FetchTablesResponse,
-} from '../services/tableService'
+import { useState, useCallback } from 'react'
+import { MOCK_TABLES_FULL } from '../../../services/mockData'
 import type { TableData, TableStatus, TablesStats } from '../constants'
 
 export type UseTablesReturn = {
@@ -40,103 +32,33 @@ export type UseTablesReturn = {
     isConnected: boolean
 }
 
+/** Compute stats from tables array */
+function computeStats(tables: TableData[]): TablesStats {
+    const counts: TablesStats = { available: 0, occupied: 0, reserved: 0, billing: 0, maintenance: 0 }
+    for (const t of tables) {
+        const k = t.status as keyof TablesStats
+        if (k in counts) counts[k]++
+    }
+    return counts
+}
+
 /**
- * Custom hook that fetches and manages restaurant table data.
- * Supports polling, WebSocket real-time updates, optimistic updates,
- * and automatic fallback to mock data when the API is unavailable.
+ * Custom hook that manages restaurant table data using mock data.
+ * All operations are performed locally — no backend required.
  */
-export function useTables(restaurantId: string): UseTablesReturn {
-    const [tables, setTables] = useState<TableData[]>([])
-    const [stats, setStats] = useState<TablesStats>({ available: 0, occupied: 0, reserved: 0, billing: 0, maintenance: 0 })
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-    const [isConnected, setIsConnected] = useState(false)
-    const unsubscribeRef = useRef<(() => void) | null>(null)
-    const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+export function useTables(_restaurantId: string): UseTablesReturn {
+    const initialTables = MOCK_TABLES_FULL
+    const [tables, setTables] = useState<TableData[]>(initialTables)
+    const [stats, setStats] = useState<TablesStats>(computeStats(initialTables))
+    const [loading] = useState(false)
+    const [error] = useState<string | null>(null)
 
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
-
-    const updateFromResponse = useCallback((res: FetchTablesResponse) => {
-        setTables(res.tables)
-        setStats({
-            available: res.stats.available ?? 0,
-            occupied: res.stats.occupied ?? 0,
-            reserved: res.stats.reserved ?? 0,
-            billing: res.stats.billing ?? 0,
-            maintenance: res.stats.maintenance ?? 0,
-        })
-        setError(null)
+    const refreshTables = useCallback(async () => {
+        // Already using mock data — nothing to refresh
     }, [])
 
     // -----------------------------------------------------------------------
-    // Fetch tables (main + refresh)
-    // -----------------------------------------------------------------------
-
-    const refreshTables = useCallback(async () => {
-        setLoading(true)
-        try {
-            const res = await fetchTables(restaurantId)
-            updateFromResponse(res)
-        } catch (err: any) {
-            setError(err?.message || 'Failed to load tables')
-        } finally {
-            setLoading(false)
-        }
-    }, [restaurantId, updateFromResponse])
-
-    // Initial fetch
-    useEffect(() => {
-        refreshTables()
-    }, [refreshTables])
-
-    // -----------------------------------------------------------------------
-    // Polling fallback (every 30 s)
-    // -----------------------------------------------------------------------
-
-    useEffect(() => {
-        pollTimerRef.current = setInterval(() => {
-            refreshTables()
-        }, 30_000)
-
-        return () => {
-            if (pollTimerRef.current) clearInterval(pollTimerRef.current)
-        }
-    }, [refreshTables])
-
-    // -----------------------------------------------------------------------
-    // WebSocket subscription
-    // -----------------------------------------------------------------------
-
-    useEffect(() => {
-        const unsub = subscribeToUpdates(restaurantId, (event) => {
-            if (event.type === 'table.updated' && event.data) {
-                setTables(prev => {
-                    const next = prev.map(t =>
-                        t.id === event.data.id ? { ...t, ...event.data } : t,
-                    )
-                    // Recompute stats after a real-time update
-                    const counts = { available: 0, occupied: 0, reserved: 0, billing: 0, maintenance: 0 }
-                    for (const t of next) {
-                        const k = t.status as keyof typeof counts
-                        if (k in counts) counts[k]++
-                    }
-                    setStats(counts)
-                    return next
-                })
-            }
-        })
-        unsubscribeRef.current = unsub
-
-        return () => {
-            unsub()
-            unsubscribeRef.current = null
-        }
-    }, [restaurantId])
-
-    // -----------------------------------------------------------------------
-    // Mutations (optimistic)
+    // Mutations (all local)
     // -----------------------------------------------------------------------
 
     const updateStatus = useCallback(async (
@@ -144,58 +66,34 @@ export function useTables(restaurantId: string): UseTablesReturn {
         status: TableStatus,
         note?: string,
     ): Promise<boolean> => {
-        // Snapshot for rollback
-        const prev = tables
-
-        // Optimistic update
-        setTables(prevTables =>
-            prevTables.map(t =>
+        setTables(prev => {
+            const next = prev.map(t =>
                 t.id === tableId
                     ? { ...t, status, notes: note ?? t.notes, lastUpdated: new Date().toISOString() }
                     : t,
-            ),
-        )
-
-        try {
-            await apiUpdateStatus(restaurantId, tableId, status, note)
-            return true
-        } catch {
-            // Rollback on error
-            setTables(prev)
-            setError('Failed to change status')
-            return false
-        }
-    }, [restaurantId, tables])
+            )
+            setStats(computeStats(next))
+            return next
+        })
+        return true
+    }, [])
 
     const updateNote = useCallback(async (
         tableId: string,
         note: string,
     ): Promise<boolean> => {
-        const prev = tables
-        setTables(prevTables =>
-            prevTables.map(t =>
+        setTables(prev => {
+            const next = prev.map(t =>
                 t.id === tableId ? { ...t, notes: note, lastUpdated: new Date().toISOString() } : t,
-            ),
-        )
-        try {
-            await apiUpdateNote(restaurantId, tableId, note)
-            return true
-        } catch {
-            setTables(prev)
-            setError('Failed to update note')
-            return false
-        }
-    }, [restaurantId, tables])
+            )
+            return next
+        })
+        return true
+    }, [])
 
-    const callWaiterAction = useCallback(async (tableId: string): Promise<boolean> => {
-        try {
-            await apiCallWaiter(restaurantId, tableId)
-            return true
-        } catch {
-            setError('Failed to call waiter')
-            return false
-        }
-    }, [restaurantId])
+    const callWaiterAction = useCallback(async (_tableId: string): Promise<boolean> => {
+        return true
+    }, [])
 
     const createTable = useCallback(async (
         data: {
@@ -211,40 +109,40 @@ export function useTables(restaurantId: string): UseTablesReturn {
             status?: string
         },
     ): Promise<boolean> => {
-        try {
-            const res = await apiCreateTable(restaurantId, data)
-            if (res.table) {
-                // Add the new table to state immediately
-                setTables(prev => [...prev, res.table])
-                // Recompute stats
-                const all = [...tables, res.table]
-                const counts = { available: 0, occupied: 0, reserved: 0, billing: 0, maintenance: 0 }
-                for (const t of all) {
-                    const k = t.status as keyof typeof counts
-                    if (k in counts) counts[k]++
-                }
-                setStats(counts)
-                return true
-            }
-            return false
-        } catch (err: any) {
-            setError(err?.message || 'Failed to create table')
-            return false
+        const newTable: TableData = {
+            id: 't' + String(Date.now()).slice(-6),
+            number: tables.length + 1,
+            capacity: data.capacity ?? 4,
+            floor: data.floor || 'Ground Floor',
+            section: data.section || null,
+            shape: data.shape || null,
+            is_accessible: data.is_accessible ?? false,
+            min_spend: data.min_spend ?? null,
+            status: (data.status as TableStatus) || 'available',
+            customers: null,
+            seatedSince: null,
+            orders: [],
+            currentBill: 0,
+            notes: data.notes || '',
+            qrCode: data.qr_code_url || '',
+            lastUpdated: new Date().toISOString(),
         }
-    }, [restaurantId, tables])
+        setTables(prev => {
+            const next = [...prev, newTable]
+            setStats(computeStats(next))
+            return next
+        })
+        return true
+    }, [tables.length])
 
     const deleteTable = useCallback(async (tableId: string): Promise<boolean> => {
-        const prev = tables
-        setTables(prevTables => prevTables.filter(t => t.id !== tableId))
-        try {
-            await apiDeleteTable(restaurantId, tableId)
-            return true
-        } catch {
-            setTables(prev)
-            setError('Failed to delete table')
-            return false
-        }
-    }, [restaurantId, tables])
+        setTables(prev => {
+            const next = prev.filter(t => t.id !== tableId)
+            setStats(computeStats(next))
+            return next
+        })
+        return true
+    }, [])
 
     return {
         tables,
@@ -257,6 +155,6 @@ export function useTables(restaurantId: string): UseTablesReturn {
         updateStatus,
         updateNote,
         callWaiterAction,
-        isConnected,
+        isConnected: true,
     }
 }

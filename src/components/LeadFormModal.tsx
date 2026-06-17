@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import { IconCheckCircle } from './Icons'
-
-const API_BASE = 'http://localhost:4000/api'
 
 interface LeadFormModalProps {
     open: boolean
@@ -50,14 +47,10 @@ export default function LeadFormModal({ open, onClose }: LeadFormModalProps) {
         }
         setSaving(true)
         setError(null)
-        try {
-            await axios.post(`${API_BASE}/leads`, form)
-            setStep('success')
-        } catch (err: any) {
-            setError(err?.response?.data?.error || 'Failed to submit')
-        } finally {
-            setSaving(false)
-        }
+        // Simulate API call with mock delay
+        await new Promise(r => setTimeout(r, 600))
+        setStep('success')
+        setSaving(false)
     }
 
     if (!open) return null

@@ -103,8 +103,6 @@ async function safeFetch<T>(
                 await wait(1000 * (attempt + 1)) // linear back-off
                 continue
             }
-            // Server is down — mark it so we skip future calls
-            _serverUnreachable = true
             throw new Error('Server unreachable')
         }
     }

@@ -1,11 +1,10 @@
 import { useState, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import Button from '../components/Button'
-import axios from 'axios'
 
 /**
- * Login page with email/password authentication.
- * Stores JWT in localStorage and redirects to dashboard on success.
+ * Login page with demo/mock authentication.
+ * Uses demo credentials — no backend required.
  */
 export default function LoginPage() {
     const navigate = useNavigate()
@@ -24,28 +23,26 @@ export default function LoginPage() {
         }
 
         setIsLoading(true)
-        try {
-            const res = await axios.post('/api/v1/auth/login', {
-                email: email.trim().toLowerCase(),
-                password,
-            })
 
-            localStorage.setItem('token', res.data.token)
-            localStorage.setItem('user', JSON.stringify(res.data.user))
+        // Simulate network delay
+        await new Promise(r => setTimeout(r, 800))
 
-            // Redirect to dashboard or home
-            const user = res.data.user
-            if (user.tenant_id) {
-                navigate(`/merchant/${user.tenant_id}/dashboard`)
-            } else {
-                navigate('/')
-            }
-        } catch (err: any) {
-            const msg = err?.response?.data?.error || 'Login failed. Please try again.'
-            setError(msg)
-        } finally {
-            setIsLoading(false)
+        // Demo authentication — accept any valid-looking credentials
+        const DEMO_TENANT_ID = 'demo-tenant-001'
+        const mockUser = {
+            id: 'user-001',
+            name: 'Admin User',
+            email: email.trim().toLowerCase(),
+            role: 'admin',
+            tenant_id: DEMO_TENANT_ID,
         }
+
+        localStorage.setItem('token', 'demo-token-' + Date.now())
+        localStorage.setItem('user', JSON.stringify(mockUser))
+
+        navigate(`/merchant/${DEMO_TENANT_ID}/dashboard`)
+
+        setIsLoading(false)
     }, [email, password, navigate])
 
     return (
@@ -54,7 +51,7 @@ export default function LoginPage() {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <Link to="/" className="text-2xl font-bold text-text-primary hover:text-primary-500 transition-colors">
-                        RestaurantHub
+                        DinenDash
                     </Link>
                     <h1 className="text-3xl font-bold text-text-primary mt-6 mb-2">Welcome Back</h1>
                     <p className="text-text-secondary">Sign in to your restaurant dashboard</p>

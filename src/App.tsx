@@ -9,6 +9,7 @@ import RegisterPage from './pages/Register'
 import TablesPage from './pages/tables/TablesPage'
 import OrdersPage from './pages/OrdersPage'
 import MenuPage from './pages/MenuPage'
+import RestaurantsNearMe from './pages/RestaurantsNearMe'
 import OrderTrackingPage from './pages/OrderTrackingPage'
 import './App.css'
 
@@ -45,6 +46,8 @@ function App() {
         <Route path="/merchant/:tenantId/orders" element={<OrdersPage />} />
         <Route path="/merchant/:tenantId/menu" element={<MenuPage />} />
         <Route path="/order/:tenantId/:tableId/tracking" element={<OrderTrackingPage />} />
+        <Route path="/nearby" element={<PageLayout><RestaurantsNearMe /></PageLayout>} />
+        <Route path="/restaurants" element={<PageLayout><RestaurantsNearMe /></PageLayout>} />
       </Routes>
     </BrowserRouter>
   )

@@ -4,7 +4,7 @@
    ============================================ */
 
 import { memo } from 'react'
-import { STATUS_BG, STATUS_TEXT, type TableData, type TableStatus } from '../constants'
+import { STATUS_TEXT, type TableData, type TableStatus } from '../constants'
 import QuickActions from './QuickActions'
 import { IconClock, IconUsers, IconCreditCard, IconOrders, IconEdit, IconAccessible } from '../../../components/Icons'
 

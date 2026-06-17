@@ -13,58 +13,12 @@
    └──────────┴───────────────────────────────────────┘
    ============================================ */
 
-import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import axios from 'axios'
 import MerchantLayout from '../components/MerchantLayout'
-import { IconOrders, IconINR, IconUsers, IconDashboard, IconAlertCircle, IconTables, IconMenu } from '../components/Icons'
-
-// ─── Types ──────────────────────────────────────────────────────────────────
-
-type DashboardData = {
-    stats: {
-        total_tables: number
-        vacant: number
-        dining: number
-        reserved: number
-        billing: number
-        preparing: number
-        total_orders_today: number
-        revenue_today: number
-        total_covers: number
-    }
-    recent_tables: Array<{
-        id: string
-        table_number_name: string
-        status: string
-        capacity: number
-        floor: string
-        section: string | null
-        shape: string | null
-        is_accessible: boolean
-        min_spend: number | null
-        customers: number | null
-        seated_at: string | null
-    }>
-    recent_orders: Array<{
-        id: string
-        table_number_name: string | null
-        status: string
-        total_amount: number
-        created_at: string
-        item_count: number
-    }>
-    revenue_trend: Array<{
-        day: string
-        label: string
-        revenue: number
-        orders: number
-    }>
-}
+import { IconOrders, IconINR, IconUsers, IconDashboard, IconTables, IconMenu } from '../components/Icons'
+import { MOCK_DASHBOARD_DATA } from '../services/mockData'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
-
-const API_BASE = 'http://localhost:4000/api'
 
 const statusLabel: Record<string, string> = {
     VACANT: 'Vacant', DINING: 'Dining', RESERVED: 'Reserved',
@@ -86,102 +40,7 @@ function fmtDate() {
 export default function MerchantDashboard() {
     const { tenantId } = useParams() as { tenantId: string }
     const navigate = useNavigate()
-    const [data, setData] = useState<DashboardData | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-
-    const token = localStorage.getItem('token')
-    const buildHeaders = useCallback(() => ({
-        'x-tenant-id': tenantId,
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    }), [tenantId, token])
-
-    const fetchDashboard = useCallback(async () => {
-        setLoading(true)
-        setError(null)
-        try {
-            const [tablesRes, ordersRes, trendRes] = await Promise.all([
-                axios.get(`${API_BASE}/restaurants/${tenantId}/tables`, { headers: buildHeaders() }).catch(() => null),
-                axios.get(`${API_BASE}/orders?tenant_id=${tenantId}&limit=20`, { headers: buildHeaders() }).catch(() => null),
-                axios.get(`${API_BASE}/dashboard/revenue-trend`, { headers: buildHeaders() }).catch(() => null),
-            ])
-
-            const tables = (tablesRes?.data?.tables || []).map((t: any) => ({
-                id: t.id, table_number_name: t.table_number_name || `Table ${t.number}`,
-                status: t.status, capacity: t.capacity ?? 4,
-                floor: t.floor || 'Ground Floor', section: t.section || null,
-                shape: t.shape || null, is_accessible: t.is_accessible ?? false,
-                min_spend: t.min_spend ?? null,
-                customers: t.customers, seated_at: t.seatedSince,
-            }))
-
-            const orders = ordersRes?.data?.orders || []
-            const totalCovers = tables.reduce((s: number, t: any) => s + (t.customers || 0), 0)
-
-            // Filter orders to today only for stats
-            const now = new Date()
-            const todayStr = now.toLocaleDateString('en-CA') // en-CA gives YYYY-MM-DD in local timezone
-            const todayOrders = orders.filter((o: any) => {
-                if (!o.created_at) return false
-                // Convert UTC timestamp to local date for comparison
-                const localDate = new Date(o.created_at).toLocaleDateString('en-CA')
-                return localDate === todayStr
-            })
-
-            const stats = {
-                total_tables: tables.length,
-                vacant: tables.filter((t: any) => t.status === 'VACANT').length,
-                dining: tables.filter((t: any) => t.status === 'DINING').length,
-                reserved: tables.filter((t: any) => t.status === 'RESERVED').length,
-                billing: tables.filter((t: any) => t.status === 'BILLING').length,
-                preparing: tables.filter((t: any) => t.status === 'PREPARING').length,
-                total_orders_today: todayOrders.length,
-                revenue_today: todayOrders.reduce((s: number, o: any) => s + (parseFloat(o.total_amount) || 0), 0),
-                total_covers: totalCovers,
-            }
-
-            const avgOrderValue = todayOrders.length > 0
-                ? stats.revenue_today / todayOrders.length
-                : 0
-
-            setData({
-                stats,
-                recent_tables: tables,
-                recent_orders: orders.slice(0, 8),
-                revenue_trend: trendRes?.data?.trend || [],
-                stats_extra: { avg_order: avgOrderValue },
-            } as any)
-        } catch (err: any) {
-            setError(err?.message || 'Failed to load dashboard')
-        } finally {
-            setLoading(false)
-        }
-    }, [tenantId, buildHeaders])
-
-    useEffect(() => { fetchDashboard() }, [fetchDashboard])
-
-    // ── Loading ──
-    if (loading) return (
-        <div className="min-h-screen bg-dark-bg flex items-center justify-center">
-            <div className="text-center">
-                <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-text-secondary text-sm">Loading dashboard...</p>
-            </div>
-        </div>
-    )
-
-    if (error || !data) return (
-        <div className="min-h-screen bg-dark-bg flex items-center justify-center">
-            <div className="text-center max-w-sm">
-                <IconAlertCircle className="w-12 h-12 mx-auto mb-4 text-danger" />
-                <h2 className="text-lg font-bold text-text-primary mb-2">Could not load dashboard</h2>
-                <p className="text-text-tertiary text-sm mb-4">{error || 'Unknown error'}</p>
-                <button onClick={fetchDashboard}
-                    className="px-6 py-2.5 bg-primary-500 text-white rounded-xl text-sm font-medium
-                               hover:bg-primary-500/90 transition-colors">Retry</button>
-            </div>
-        </div>
-    )
+    const data = MOCK_DASHBOARD_DATA
 
     const { stats, recent_tables, recent_orders, revenue_trend } = data
     const avgOrder = stats.total_orders_today > 0 ? stats.revenue_today / stats.total_orders_today : 0

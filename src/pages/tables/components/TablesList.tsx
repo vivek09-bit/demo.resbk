@@ -5,7 +5,6 @@
 import { useMemo } from 'react'
 import type { TableData, TableStatus, TablesFilter } from '../constants'
 import TableCard from './TableCard'
-import { IconTables } from '../../../components/Icons'
 
 interface TablesListProps {
     tables: TableData[]

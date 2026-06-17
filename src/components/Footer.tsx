@@ -9,7 +9,7 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                     {/* Company column */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-bold text-text-primary">RestaurantHub</h3>
+                        <h3 className="text-lg font-bold text-text-primary">DinenDash</h3>
                         <p className="text-sm text-text-secondary leading-relaxed">
                             Digital table management platform for modern restaurants. Streamline orders, reduce errors, boost revenue.
                         </p>
@@ -66,8 +66,8 @@ export default function Footer() {
 
                 {/* Bottom bar */}
                 <div className="border-t border-dark-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-text-tertiary">
-                    <p>&copy; 2024 RestaurantHub. All rights reserved.</p>
-                    <p>support@restauranthub.com</p>
+                    <p>&copy; 2024 DinenDash. All rights reserved.</p>
+                    <p>support@dinendash.com</p>
                 </div>
             </div>
         </footer>

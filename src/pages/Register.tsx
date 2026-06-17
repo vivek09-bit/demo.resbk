@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
 import Button from '../components/Button'
 
 
@@ -243,55 +242,40 @@ export default function RegisterPage() {
     async function submit() {
         setLoading(true)
         setError(null)
-        try {
-            let logo_url = null
-            if (data.logo_file) {
-                const fd = new FormData()
-                fd.append('file', data.logo_file)
-                const up = await axios.post('/api/uploads', fd, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                })
-                logo_url = up.data.url
-            }
 
-            // Parse cuisine_type from comma-separated string to array
-            const cuisineArray = data.cuisine_type
-                ? data.cuisine_type.split(',').map((s: string) => s.trim()).filter(Boolean)
-                : []
+        // Simulate network delay
+        await new Promise(r => setTimeout(r, 1000))
 
-            const payload = {
-                owner_name: data.owner_name,
-                email: data.email,
-                password: data.password,
-                business_name: data.business_name,
-                address: data.address,
-                cuisine_type: cuisineArray,
-                currency: 'INR',
-                operating_hours: data.operating_hours,
-                logo_url,
-            }
-
-            const res = await axios.post('/api/v1/auth/register-tenant', payload)
-            localStorage.setItem('token', res.data.token)
-            localStorage.setItem('tenant', JSON.stringify(res.data.tenant))
-            localStorage.setItem('user', JSON.stringify({
-                id: res.data.tenant?.id,
-                name: data.owner_name,
-                email: data.email,
-                role: 'admin',
-                tenant_id: res.data.tenant?.id,
-            }))
-            setSuccess(true)
-
-            // Redirect to dashboard after short delay
-            setTimeout(() => {
-                navigate(`/merchant/${res.data.tenant.id}/dashboard`)
-            }, 2000)
-        } catch (err: any) {
-            setError(err?.response?.data?.error || 'Registration failed. Please try again.')
-        } finally {
-            setLoading(false)
+        // Mock registration — store demo data locally
+        const DEMO_TENANT_ID = 'demo-tenant-' + String(Date.now()).slice(-6)
+        const mockTenant = {
+            id: DEMO_TENANT_ID,
+            name: data.business_name || 'My Restaurant',
+            owner_name: data.owner_name,
+            email: data.email,
+            address: data.address,
+            cuisine_type: data.cuisine_type ? data.cuisine_type.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
+            currency: 'INR',
+            operating_hours: data.operating_hours,
         }
+
+        localStorage.setItem('token', 'demo-token-' + Date.now())
+        localStorage.setItem('tenant', JSON.stringify(mockTenant))
+        localStorage.setItem('user', JSON.stringify({
+            id: 'user-' + String(Date.now()).slice(-6),
+            name: data.owner_name,
+            email: data.email,
+            role: 'admin',
+            tenant_id: DEMO_TENANT_ID,
+        }))
+        setSuccess(true)
+
+        // Redirect to dashboard after short delay
+        setTimeout(() => {
+            navigate(`/merchant/${DEMO_TENANT_ID}/dashboard`)
+        }, 2000)
+
+        setLoading(false)
     }
 
     return (
@@ -300,7 +284,7 @@ export default function RegisterPage() {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <Link to="/" className="text-2xl font-bold text-text-primary hover:text-primary-500 transition-colors">
-                        RestaurantHub
+                        DinenDash
                     </Link>
                     <h1 className="text-3xl font-bold text-text-primary mt-6 mb-2">Register Your Restaurant</h1>
                     <p className="text-text-secondary">Create your account in 3 simple steps</p>
