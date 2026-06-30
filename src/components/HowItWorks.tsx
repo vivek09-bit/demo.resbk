@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Button from './Button'
 import { HOW_IT_WORKS } from '../utils/constants'
-import { IconPenTool, IconUtensilsCrossed, IconCheckCircle } from '../components/Icons'
+import { IconPenTool, IconUtensilsCrossed, IconCheckCircle } from './Icons'
 
 const iconMap: Record<string, React.ReactNode> = {
     edit: <IconPenTool className="w-8 h-8 text-primary-500" />,

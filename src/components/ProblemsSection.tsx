@@ -1,6 +1,6 @@
 import Card from './Card'
 import { FEATURES_PROBLEMS } from '../utils/constants'
-import { IconSmartphone, IconRocket, IconDollarSign } from '../components/Icons'
+import { IconSmartphone, IconRocket, IconDollarSign } from './Icons'
 
 const iconMap: Record<string, React.ReactNode> = {
     smartphone: <IconSmartphone className="w-8 h-8 text-primary-500" />,

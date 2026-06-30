@@ -1,5 +1,5 @@
 import { FEATURES } from '../utils/constants'
-import { IconSmartphone, IconRocket, IconActivity, IconClipboardList, IconBarChart3 } from '../components/Icons'
+import { IconSmartphone, IconRocket, IconActivity, IconClipboardList, IconBarChart3 } from './Icons'
 
 const iconMap: Record<string, React.ReactNode> = {
     smartphone: <IconSmartphone className="w-8 h-8 text-primary-500" />,

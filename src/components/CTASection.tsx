@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import Button from './Button'
-import { IconCheckCircle } from '../components/Icons'
+import { IconCheckCircle } from './Icons'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 

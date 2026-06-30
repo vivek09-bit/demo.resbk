@@ -1,6 +1,6 @@
 import Button from './Button'
 import { PRICING } from '../utils/constants'
-import { IconCheck } from '../components/Icons'
+import { IconCheck } from './Icons'
 
 interface PricingCardProps {
     name: string

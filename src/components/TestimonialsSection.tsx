@@ -1,5 +1,6 @@
+import type { ReactNode } from 'react'
 import { TESTIMONIALS } from '../utils/constants'
-import { IconStar } from '../components/Icons'
+import { IconStar } from './Icons'
 
 interface TestimonialCardProps {
     quote: string
