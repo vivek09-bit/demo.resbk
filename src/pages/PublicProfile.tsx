@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import MerchantLayout from '../components/MerchantLayout'
 import {
-    IconMapPin, IconUtensilsCrossed, IconStar, IconPhone,
+    IconMapPin, IconUtensilsCrossed, IconStar,
     IconExternalLink, IconCheck, IconClose,
 } from '../components/Icons'
 

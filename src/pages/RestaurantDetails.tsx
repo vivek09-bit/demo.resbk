@@ -5,7 +5,7 @@ import {
     IconMapPin,
     IconPhone,
     IconClock,
-    IconCalendar,
+
     IconCheck,
     IconArrowLeft,
     IconMap,

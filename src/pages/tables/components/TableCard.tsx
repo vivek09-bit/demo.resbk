@@ -4,7 +4,7 @@
    ============================================ */
 
 import { memo } from 'react'
-import { STATUS_BG, STATUS_TEXT, type TableData, type TableStatus } from '../constants'
+import { STATUS_TEXT, type TableData, type TableStatus } from '../constants'
 import QuickActions from './QuickActions'
 import { IconClock, IconUsers, IconCreditCard, IconOrders, IconEdit, IconAccessible } from '../../../components/Icons'
 
@@ -85,7 +85,7 @@ function TableCard({ table, onClick, onStatusChange, onCallWaiter, onViewOrder, 
             <div className="flex items-start justify-between mb-2 gap-2">
                 <div className="min-w-0">
                     <h4 className="text-text-primary font-semibold text-base truncate">
-                        {table.table_number_name || `Table ${table.number}`}
+                        {`Table ${table.number}`}
                     </h4>
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-text-tertiary mt-0.5">
                         <span>{table.capacity} seats</span>

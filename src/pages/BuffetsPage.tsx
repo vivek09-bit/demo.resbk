@@ -192,7 +192,7 @@ export default function BuffetsPage() {
                 const toRemove = currentIds.filter((id: string) => !selectedItems.includes(id))
                 await Promise.all([
                     ...toAdd.map(id => axios.post(`${API_BASE}/buffets/${editingBuffet.id}/items`, { menu_item_id: id }, { headers }).catch(() => { })),
-                    ...toRemove.map(id => axios.delete(`${API_BASE}/buffets/${editingBuffet.id}/items/${id}`, { headers }).catch(() => { })),
+                    ...toRemove.map((id: string) => axios.delete(`${API_BASE}/buffets/${editingBuffet.id}/items/${id}`, { headers }).catch(() => { })),
                 ])
             } else {
                 const res = await axios.post(`${API_BASE}/buffets`, payload, { headers })

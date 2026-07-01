@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { TESTIMONIALS } from '../utils/constants'
 import { IconStar } from './Icons'
 

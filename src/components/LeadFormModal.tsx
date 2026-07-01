@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { IconCheckCircle } from './Icons'
 import {
     Dialog,
     DialogContent,

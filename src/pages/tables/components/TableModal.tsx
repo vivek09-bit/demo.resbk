@@ -295,9 +295,9 @@ export default function TableModal({ table, open, onClose, onStatusChange, onDel
                                 </button>
                             </div>
                             <div className="flex gap-2">
-                                {statusKey !== 'billing' && (
+                                {statusKey !== 'BILLING' && (
                                     <button
-                                        onClick={() => { onStatusChange(table.id, 'billing'); onClose() }}
+                                        onClick={() => { onStatusChange(table.id, 'BILLING'); onClose() }}
                                         className="flex-1 px-3 py-2.5 text-sm font-medium rounded-lg
                                                    border-2 border-status-billing text-status-billing
                                                    hover:bg-status-billing/10 transition-all active:scale-95"

@@ -7,7 +7,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import MerchantLayout from '../components/MerchantLayout'
-import { IconOrders, IconMenu, IconEdit, IconClose, IconAlertCircle, IconTables } from '../components/Icons'
+import { IconMenu, IconEdit, IconClose, IconAlertCircle, IconTables } from '../components/Icons'
 import { Check, X } from 'lucide-react'
 
 // ─── Types ──────────────────────────────────────────────────────────────────

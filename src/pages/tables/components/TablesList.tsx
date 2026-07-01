@@ -5,8 +5,6 @@
 import { useMemo } from 'react'
 import type { TableData, TableStatus, TablesFilter } from '../constants'
 import TableCard from './TableCard'
-import { IconTables } from '../../../components/Icons'
-
 interface TablesListProps {
     tables: TableData[]
     loading: boolean
@@ -70,7 +68,7 @@ export default function TablesList({
             const q = filters.search.trim().toLowerCase()
             result = result.filter(t =>
                 String(t.number).includes(q) ||
-                String(t.table_number_name || '').toLowerCase().includes(q) ||
+                String(t.number).includes(q) ||
                 t.floor.toLowerCase().includes(q) ||
                 t.notes.toLowerCase().includes(q) ||
                 (t.section || '').toLowerCase().includes(q),
@@ -81,7 +79,7 @@ export default function TablesList({
         result = [...result].sort((a, b) => {
             const f = (a.floor || '').localeCompare(b.floor || '')
             if (f !== 0) return f
-            return (a.table_number_name || String(a.number)).localeCompare(b.table_number_name || String(b.number))
+            return String(a.number).localeCompare(String(b.number))
         })
 
         // Group by floor

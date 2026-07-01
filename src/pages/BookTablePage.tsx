@@ -27,6 +27,8 @@ export default function BookTablePage() {
     const [confirmed, setConfirmed] = useState(false)
     const [bookingRef, setBookingRef] = useState('')
 
+    if (!restaurant) return <div className="min-h-screen bg-dark-bg flex items-center justify-center"><p className="text-text-secondary">Restaurant not found</p></div>
+
     const rows = useMemo(() => {
         const maxRow = Math.max(...DUMMY_TABLES.map(t => t.row))
         const maxCol = Math.max(...DUMMY_TABLES.map(t => t.col))
@@ -202,7 +204,6 @@ export default function BookTablePage() {
                                 const isSelected = selectedTable?.id === table.id
                                 const isOccupied = table.status === 'occupied'
                                 const isReserved = table.status === 'reserved'
-                                const fits = table.seats >= guests
                                 let stateColor = 'border-dark-border bg-dark-surface'
                                 if (isSelected) stateColor = 'border-amber-400 bg-amber-400/10 ring-2 ring-amber-400/40'
                                 else if (isOccupied) stateColor = 'border-status-occupied/30 bg-status-occupied/10 opacity-50'

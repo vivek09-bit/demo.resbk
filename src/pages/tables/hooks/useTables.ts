@@ -50,7 +50,7 @@ export function useTables(restaurantId: string): UseTablesReturn {
     const [stats, setStats] = useState<TablesStats>({ available: 0, occupied: 0, reserved: 0, billing: 0, maintenance: 0 })
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [isConnected, setIsConnected] = useState(false)
+    const [isConnected, _setIsConnected] = useState(false)
     const unsubscribeRef = useRef<(() => void) | null>(null)
     const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 

@@ -12,7 +12,7 @@ export const SocketProvider: React.FC<{ tenantId?: string; children: React.React
 
     useEffect(() => {
         if (!tenantId) return
-        const backend = process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:4000'
+        const backend = import.meta.env.PROD ? undefined : 'http://localhost:4000'
         const s = io(backend || '/', { query: { tenant: tenantId } })
         setSocket(s)
         s.on('connect', () => console.log('socket connected', s.id))

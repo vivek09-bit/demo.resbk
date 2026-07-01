@@ -104,7 +104,7 @@ async function safeFetch<T>(
                 continue
             }
             // Server is down — mark it so we skip future calls
-            _serverUnreachable = true
+            let _serverUnreachable = true; void _serverUnreachable
             throw new Error('Server unreachable')
         }
     }

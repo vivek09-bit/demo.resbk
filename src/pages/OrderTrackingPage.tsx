@@ -51,7 +51,7 @@ function fmtTime(iso: string) {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function OrderTrackingPage() {
-    const { tenantId, tableId } = useParams() as { tenantId: string; tableId: string }
+    const { tenantId, tableId: _tableId } = useParams() as { tenantId: string; tableId: string }
     const [searchParams] = useSearchParams()
     const orderId = searchParams.get('order')
 
@@ -161,7 +161,6 @@ export default function OrderTrackingPage() {
                             const cfg = STATUS_CONFIG[step]
                             const isCompleted = i <= currentIdx
                             const isCurrent = i === currentIdx
-                            const isPending = i > currentIdx
                             return (
                                 <div key={step} className="flex items-start gap-4 pb-6 last:pb-0 relative">
                                     {/* Connector line */}

@@ -24,7 +24,7 @@ const PICKUP_SLOTS = [
 export default function CheckoutPage() {
     const { slug } = useParams() as { slug: string }
     const navigate = useNavigate()
-    const { cart, cartCount, subtotal, tax, total, clearCart } = useCart()
+    const { cart, subtotal, tax, total, clearCart } = useCart()
     const restaurant = getDetailBySlug(slug) || getDetailById(slug)
     if (!cart.length) console.warn('🛒 Cart is empty on checkout!')
 

@@ -17,7 +17,6 @@ export default function Card({ variant = 'default', children, className = '' }: 
 
     return (
         <ShadcnCard
-            size="default"
             className={`hover:scale-105 transition-all duration-300 ${isFeatured ? 'ring-2 ring-primary' : 'ring-1 ring-foreground/10'} ${className}`}
         >
             <CardContent className="p-6">

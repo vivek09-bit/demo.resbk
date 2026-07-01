@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
 import {
     IconMapPin, IconUtensilsCrossed, IconStar, IconPhone,
-    IconExternalLink, IconCheck, IconClose, IconArrowLeft,
+    IconCheck, IconClose, IconArrowLeft,
 } from '../components/Icons'
 
 const API_BASE = 'http://localhost:4000/api'
@@ -83,7 +83,7 @@ export default function CreatePublicListing() {
                 }))
             }
             setStep('form')
-        }).catch(err => {
+        }).catch(() => {
             setError('Failed to load profile. Please try again.')
             setStep('form')
         })
@@ -123,11 +123,6 @@ export default function CreatePublicListing() {
             setSaving(false)
         }
     }
-
-    // ─── Preview helpers ──────────────────────────────────────────────────
-    const previewUrl = form.latitude && form.longitude
-        ? `https://www.google.com/maps/dir/?api=1&destination=${form.latitude},${form.longitude}`
-        : null
 
     // =========================================================================
     // RENDER

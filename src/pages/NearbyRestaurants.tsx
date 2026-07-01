@@ -9,7 +9,6 @@ import {
     IconRefresh,
     IconUtensilsCrossed,
     IconAlertCircle,
-    IconExternalLink,
     IconInfo,
 } from '../components/Icons'
 

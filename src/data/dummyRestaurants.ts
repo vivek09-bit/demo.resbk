@@ -519,7 +519,7 @@ export function randomDistance(): number {
 }
 
 /** Assign random distances to all summaries (simulates geo-based sorting) */
-export function withDistances(list: RestaurantSummary[], lat?: number, lng?: number): RestaurantSummary[] {
+export function withDistances(list: RestaurantSummary[], _lat?: number, _lng?: number): RestaurantSummary[] {
     return list.map((r) => ({
         ...r,
         distance_km: randomDistance(),

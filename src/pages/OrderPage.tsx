@@ -6,7 +6,6 @@ import { useCart } from '../context/CartContext'
 import type { MenuItem } from '../context/CartContext'
 
 const API_BASE = 'http://localhost:4000/api'
-const TAX_RATE = 0.05
 
 // ─── Fallback demo data ─────────────────────────────────────────────────────
 
